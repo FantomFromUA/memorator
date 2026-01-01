@@ -1,11 +1,20 @@
 package com.memorator.service;
 
-import com.memorator.dto.RegistrationRequest;
-import com.memorator.entity.User;
-import com.memorator.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+
+import com.memorator.dto.RegistrationRequest;
+import com.memorator.dto.LoginRequest;
+import com.memorator.dto.UserResponse;
+import com.memorator.entity.User;
+import com.memorator.repository.UserRepository;
+
+import com.memorator.exception.EmailAlreadyExistsException;
+import com.memorator.exception.InvalidCredentialsException;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -14,9 +23,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    public User registerUser(RegistrationRequest request) {
+    public UserResponse registerUser(RegistrationRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email already in use");
+            throw new EmailAlreadyExistsException();
         }
 
         User user = User.builder()
@@ -24,6 +33,27 @@ public class UserService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .build();
 
-        return userRepository.save(user);
+        userRepository.save(user);
+
+        return new UserResponse(
+            user.getId(),
+            user.getEmail(),
+            user.getCreatedAt()
+        );
+    }
+
+    public UserResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+            .orElseThrow(InvalidCredentialsException::new);
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException();
+        }
+
+        return new UserResponse(
+            user.getId(),
+            user.getEmail(),
+            user.getCreatedAt()
+        );
     }
 }
