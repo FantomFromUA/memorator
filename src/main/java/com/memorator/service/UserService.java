@@ -3,6 +3,7 @@ package com.memorator.service;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import lombok.RequiredArgsConstructor;
 
 import com.memorator.dto.RegistrationRequest;
@@ -13,6 +14,7 @@ import com.memorator.repository.UserRepository;
 
 import com.memorator.exception.EmailAlreadyExistsException;
 import com.memorator.exception.InvalidCredentialsException;
+import com.memorator.security.JwtService;
 
 
 
@@ -22,6 +24,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public UserResponse registerUser(RegistrationRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -35,10 +38,13 @@ public class UserService {
 
         userRepository.save(user);
 
+        String token = jwtService.generateToken(user);
+
         return new UserResponse(
             user.getId(),
             user.getEmail(),
-            user.getCreatedAt()
+            user.getCreatedAt(),
+            token
         );
     }
 
@@ -50,10 +56,13 @@ public class UserService {
             throw new InvalidCredentialsException();
         }
 
+        String token = jwtService.generateToken(user);
+
         return new UserResponse(
             user.getId(),
             user.getEmail(),
-            user.getCreatedAt()
+            user.getCreatedAt(),
+            token
         );
     }
 }
