@@ -11,4 +11,5 @@ public class UserResponse {
     private Long id;
     private String email;
     private LocalDateTime createdAt;
+    private String accessToken;
 }
