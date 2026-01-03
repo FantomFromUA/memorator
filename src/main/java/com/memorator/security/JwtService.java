@@ -1,5 +1,6 @@
 package com.memorator.security;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
@@ -22,9 +23,13 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    public String generateToken(User user) {
-        Key key = Keys.hmacShaKeyFor(secret.getBytes());
+    private final Key key;
 
+    public JwtService(@Value("${jwt.secret}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public String generateToken(User user) {
         Instant now = Instant.now();
         Instant expiry = now.plusMillis(expiration); 
 
@@ -38,12 +43,14 @@ public class JwtService {
     }
 
     public Claims parseToken(String token) {
-        Key key = Keys.hmacShaKeyFor(secret.getBytes());
-
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public Long extractUserId(String token) {
+        return Long.valueOf(parseToken(token).getSubject());
     }
 }
