@@ -4,17 +4,17 @@ package com.memorator.service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import lombok.RequiredArgsConstructor;
-
-import com.memorator.dto.RegistrationRequest;
 import com.memorator.dto.LoginRequest;
-import com.memorator.dto.UserResponse;
+import com.memorator.dto.LoginResponse;
+import com.memorator.dto.RegistrationRequest;
+import com.memorator.entity.RefreshToken;
 import com.memorator.entity.User;
-import com.memorator.repository.UserRepository;
-
 import com.memorator.exception.EmailAlreadyExistsException;
 import com.memorator.exception.InvalidCredentialsException;
+import com.memorator.repository.UserRepository;
 import com.memorator.security.JwtService;
+
+import lombok.RequiredArgsConstructor;
 
 
 
@@ -25,8 +25,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
-    public UserResponse registerUser(RegistrationRequest request) {
+    public LoginResponse registerUser(RegistrationRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistsException();
         }
@@ -38,17 +39,13 @@ public class UserService {
 
         userRepository.save(user);
 
-        String token = jwtService.generateToken(user);
+        String accessToken = jwtService.generateToken(user);
+        RefreshToken refreshToken = refreshTokenService.create(user);
 
-        return new UserResponse(
-            user.getId(),
-            user.getEmail(),
-            user.getCreatedAt(),
-            token
-        );
+        return new LoginResponse(accessToken, refreshToken.getToken());
     }
 
-    public UserResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
             .orElseThrow(InvalidCredentialsException::new);
 
@@ -56,13 +53,9 @@ public class UserService {
             throw new InvalidCredentialsException();
         }
 
-        String token = jwtService.generateToken(user);
+        String accessToken = jwtService.generateToken(user);
+        RefreshToken refreshToken = refreshTokenService.create(user);
 
-        return new UserResponse(
-            user.getId(),
-            user.getEmail(),
-            user.getCreatedAt(),
-            token
-        );
+        return new LoginResponse(accessToken, refreshToken.getToken());
     }
 }
