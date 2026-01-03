@@ -41,16 +41,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             Long userId = jwtService.extractUserId(token);
 
-            System.out.println("Auth Header: " + userId);
             UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         userId,
                         null,
                         List.of(() -> "AUTHENTICATED")
                 );
-
-            
-            System.out.println("Auth Header: " + authentication);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
