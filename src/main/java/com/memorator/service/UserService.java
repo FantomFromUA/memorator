@@ -11,6 +11,7 @@ import com.memorator.entity.RefreshToken;
 import com.memorator.entity.User;
 import com.memorator.exception.EmailAlreadyExistsException;
 import com.memorator.exception.InvalidCredentialsException;
+import com.memorator.exception.LoginAlreadyExistsException;
 import com.memorator.repository.UserRepository;
 import com.memorator.security.JwtService;
 
@@ -32,8 +33,13 @@ public class UserService {
             throw new EmailAlreadyExistsException();
         }
 
+        if (userRepository.existsByLogin(request.getLogin())) {
+            throw new LoginAlreadyExistsException();
+        }
+
         User user = User.builder()
                 .email(request.getEmail())
+                .login(request.getLogin())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .build();
 
@@ -46,7 +52,8 @@ public class UserService {
     }
 
     public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
+        String identifier = request.getIdentifier();
+        User user = userRepository.findByEmailOrLogin(identifier, identifier)
             .orElseThrow(InvalidCredentialsException::new);
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {

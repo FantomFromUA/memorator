@@ -9,6 +9,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class UserResponse {
     private Long id;
+    private String login;
     private String email;
     private LocalDateTime createdAt;
     private String accessToken;
