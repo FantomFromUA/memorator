@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.memorator.dto.LoginRequest;
 import com.memorator.dto.LoginResponse;
 import com.memorator.dto.RegistrationRequest;
+import com.memorator.dto.UserResponse;
 import com.memorator.entity.RefreshToken;
 import com.memorator.entity.User;
 import com.memorator.exception.EmailAlreadyExistsException;
@@ -49,6 +50,12 @@ public class UserService {
         RefreshToken refreshToken = refreshTokenService.create(user);
 
         return new LoginResponse(accessToken, refreshToken.getToken());
+    }
+
+    public UserResponse getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return new UserResponse(user.getId(), user.getLogin(), user.getEmail(), user.getCreatedAt());
     }
 
     public LoginResponse login(LoginRequest request) {
