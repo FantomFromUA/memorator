@@ -12,5 +12,4 @@ public class UserResponse {
     private String login;
     private String email;
     private LocalDateTime createdAt;
-    private String accessToken;
 }

@@ -2,6 +2,8 @@ package com.memorator.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +14,7 @@ import com.memorator.dto.LoginResponse;
 import com.memorator.dto.LogoutRequest;
 import com.memorator.dto.RefreshRequest;
 import com.memorator.dto.RegistrationRequest;
+import com.memorator.dto.UserResponse;
 import com.memorator.entity.RefreshToken;
 import com.memorator.entity.User;
 import com.memorator.repository.RefreshTokenRepository;
@@ -23,7 +26,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -31,6 +34,11 @@ public class UserController {
     private final RefreshTokenService refreshTokenService;
     private final JwtService jwtService;
     private final RefreshTokenRepository refreshTokenRepository;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserById(id));
+    }
 
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegistrationRequest request) {
